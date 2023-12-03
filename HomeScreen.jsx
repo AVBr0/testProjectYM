@@ -13,19 +13,11 @@ import { SelectList } from 'react-native-dropdown-select-list'
 
 export const HomeScreen = React.memo(({navigation}) => {
   const [search, setSearch] = useState('');
+  const [selectedCity, setSelectedCity] = useState('Все');
+  const [selectedText, setSelectedText] = useState('');
   const [filteredData, setFilteredData] = useState(OBJECTS);
-  const [checkedData, setCheckedData] = useState(OBJECTS);
   const [detailObj, setDetailObj] = useState(OBJECTS[0].id);
 
-  const dataDropDownDyn = (val) => {
-    let checkedObjectsData = []
-    OBJECTS.forEach((e) => {
-      if (e.city === val) checkedObjectsData.push(e)
-      if ('Все' === val) checkedObjectsData = [...OBJECTS]
-    })
-    setFilteredData(checkedObjectsData)
-    setCheckedData(checkedObjectsData)
-  }
 
   const createCitiesDropDown = () => {
     const uniqCities = new Set().add('Все');
@@ -37,9 +29,15 @@ export const HomeScreen = React.memo(({navigation}) => {
   }
   
 
-  const searchFilterFunction = (text) => {
+  const searchFilterFunction = (text, selcity) => {
+    let checkedObjectsData = []
+    OBJECTS.forEach((e) => {
+      if (e.city === selcity) checkedObjectsData.push(e)
+      if ('Все' === selcity) checkedObjectsData = [...OBJECTS]
+    })
+
     if (text) {
-      const newData = filteredData.filter((item) => {
+      const newData = checkedObjectsData.filter((item) => {
         const itemData = item.title
         ? item.title.toUpperCase()
         : ''.toUpperCase();
@@ -49,7 +47,7 @@ export const HomeScreen = React.memo(({navigation}) => {
       setFilteredData(newData);
       setSearch(text);
     } else {
-      setFilteredData(checkedData);
+      setFilteredData(checkedObjectsData);
       setSearch(text);
     }
   };
@@ -93,15 +91,18 @@ export const HomeScreen = React.memo(({navigation}) => {
       <View style={styles.container}>
         <TextInput
           style={styles.textInputStyle}
-          onChangeText={(text) => searchFilterFunction(text)}
+          onChangeText={(text) => {
+            setSelectedText(text)
+            searchFilterFunction(text, selectedCity)
+          }}
           value={search}
           underlineColorAndroid="transparent"
           placeholder="Поиск..."
         />
         <SelectList 
         setSelected={(val) => {
-          dataDropDownDyn(val)
-          setSearch('')
+          setSelectedCity(val)
+          searchFilterFunction(selectedText, val)
         }}
         data={() => createCitiesDropDown()}
         placeholder="Выберите город..."
@@ -131,7 +132,7 @@ const styles = StyleSheet.create({
     borderRadius: 15,
     paddingLeft: 20,
     margin: 5,
-    borderColor: '#009688',
+    borderColor: '#7FFFD4',
     backgroundColor: '#FFFFFF',
   },
 });
